@@ -32,4 +32,4 @@ def resize_image(s3bucket, s3key):
         bucket_name=os.environ['DEST_S3_BUCKET'],
         key=resized_key,
     )
-    obj.put(Body=buffer, ContentType='image/jpeg')
+    return obj.put(Body=buffer, ContentType='image/jpeg')

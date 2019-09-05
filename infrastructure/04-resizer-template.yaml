@@ -1,0 +1,86 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: A sample template
+
+Resources:
+  ResizerLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code: '../'
+      Environment:
+        Variables:
+          DEST_S3_BUCKET: !Ref DestinationBucket
+      Handler: 'index.lambda_handler'
+      Role: !GetAtt ExecutionRole.Arn
+      Runtime: 'python3.7'
+      Timeout: 30
+
+  ResizerLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties: 
+      Action: 'lambda:InvokeFunction'
+      FunctionName: !GetAtt ResizerLambda.Arn
+      Principal: "s3.amazonaws.com"
+      SourceArn: !ImportValue ImagesBucketArn
+
+  DestinationBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: 'flask-resized-images-uploads-tbublik'
+      NotificationConfiguration:
+        TopicConfigurations:
+          - Event: "s3:ObjectCreated:*"
+            Topic: !Ref ImageNotifierTopic
+
+  ImageNotifierTopic:
+    Type: AWS::SNS::Topic
+    Properties: 
+      DisplayName: 'The Resizer Lambda Function just pushed a new image!'
+      Subscription: 
+        - Endpoint: 'legigu@mailnowapp.com'
+          Protocol: 'email'
+      TopicName: 'resized-images'
+    
+  ImageNotifierTopicPolicy:
+    Type: AWS::SNS::TopicPolicy
+    Properties: 
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement: 
+          - 
+            Effect: "Allow"
+            Principal: 
+              AWS: 
+                - "*"
+            Action: 
+              - "sns:Publish"
+            Resource: !Ref ImageNotifierTopic
+      Topics: 
+        - !Ref ImageNotifierTopic
+
+  ExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument: 
+        Version: "2012-10-17"
+        Statement: 
+          - 
+            Effect: "Allow"
+            Principal: 
+              Service: 
+                - "lambda.amazonaws.com"
+            Action: 
+              - "sts:AssumeRole"
+      RoleName: 'LambdaRole'   
+      ManagedPolicyArns: 
+        - arn:aws:iam::aws:policy/AWSLambdaExecute
+
+Outputs:
+  ResizerLambdaArn:
+    Value: !GetAtt ResizerLambda.Arn
+    Export:
+      Name: ResizerLambdaArn
+
+  SNSTopicArn:
+    Value: !Ref ImageNotifierTopic
+    Export:
+      Name: ImageNotifierTopicArn
