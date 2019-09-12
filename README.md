@@ -1,5 +1,5 @@
 # How To
-## Linux/macos
-Run `build_lambda.sh` to build dependencies, deploy to your Amazon Lambda.
-## Windows
-Build in a Linux Docker container (you can update the command used in `build_lambda.sh` to CMD/Powershell) or virtual machine, put dependencies in the same folder and deploy to your Amazon Lambda.
+Run `build_lambda.sh` to build dependencies. Then deploy your Amazon Lambda with CloudFormation template stored in `./infrastructure`.
+# -------------
+# Запуск
+Запустите `build_lambda.sh`, чтобы скомпилировать все зависимисоти и сохранить их в текущей дериктории. Используйте шаблон из `./infrastructure` для деплоя в AWS.
